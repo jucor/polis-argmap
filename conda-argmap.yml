@@ -4,12 +4,12 @@ channels:
   - nvidia
   - pytorch
   - conda-forge
-  - defaults
+#  - defaults
 
 dependencies:
   # base
   - python>=3.11
-  - pytorch::pytorch-cuda
+  # - pytorch::pytorch-cuda
   - pytorch::pytorch
   - ipykernel
   - ipywidgets
@@ -37,8 +37,11 @@ dependencies:
   - pip:
     - bertopic
     - guidance
-    - https://github.com/AutoGPTQ/AutoGPTQ
-    - https://huggingface.co/spacy/en_core_web_lg/resolve/main/en_core_web_lg-any-py3-none-any.whl
+    # AutoGPTQ is not supported on macOS
+    # - https://github.com/AutoGPTQ/AutoGPTQ
+    # The below link generates error, replacing by specific version
+    # - https://huggingface.co/spacy/en_core_web_lg/resolve/main/en_core_web_lg-any-py3-none-any.whl
+    - https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.8.0/en_core_web_lg-3.8.0-py3-none-any.whl
 
   # postgres support
   # - connectorx
