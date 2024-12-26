@@ -35,19 +35,22 @@ dependencies:
   # language model
   - transformers
   - accelerate
-  - optimum
 
   - pip
   - pip:
     - -e . # In stall local argmap package in editable mode
     - bertopic
     - guidance
+    - optimum # Later version than the one in the conda-forge channel
     # AutoGPTQ is not supported on macOS
     # - https://github.com/AutoGPTQ/AutoGPTQ
     # The below link generates error, replacing by specific version
     # - https://huggingface.co/spacy/en_core_web_lg/resolve/main/en_core_web_lg-any-py3-none-any.whl
     - https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.8.0/en_core_web_lg-3.8.0-py3-none-any.whl
-
+    # Latest version of transformers as of 2024-12-26 for modernBERT
+    # Once version 4.28.x we can install from conda-forge or any repo, but not before then.
+    # See https://huggingface.co/answerdotai/ModernBERT-base/discussions/3#6764f047eef1e726f2100ca3
+    - git+https://github.com/huggingface/transformers
   # postgres support
   # - connectorx
   # - sqlalchemy
