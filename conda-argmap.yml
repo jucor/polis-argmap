@@ -10,7 +10,9 @@ dependencies:
   # base
   - python>=3.11
   # - pytorch::pytorch-cuda
-  - pytorch::pytorch
+  # Pytorch version >= 2.3.0 to support numpy>=2
+  # see https://github.com/pytorch/pytorch/issues/107302
+  - pytorch::pytorch>=2.3.0
   - ipykernel
   - ipywidgets
   - python-dotenv
@@ -22,7 +24,9 @@ dependencies:
   - sentence-transformers
   - hvplot
   - nbformat
-  - datashader
+  # Commenting out datashader due to raising conflcits and apparently not being imported
+  # explicitely in the current codebase. Raising issues with python 3.12 and mamba, s
+  # - datashader
   - scikit-image
   - plotly>=5.19.0 # newer version needed for certain plots in bertopic
   # - seaborn
@@ -35,6 +39,7 @@ dependencies:
 
   - pip
   - pip:
+    - -e . # In stall local argmap package in editable mode
     - bertopic
     - guidance
     # AutoGPTQ is not supported on macOS
