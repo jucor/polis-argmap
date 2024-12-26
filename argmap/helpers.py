@@ -8,12 +8,19 @@ languageModel = None
 
 def getTorchDeviceVersion():
     import torch
-    return f"""\
-Device: {torch.cuda.get_device_name(0)}
+    versions = f"""\
 Python: {sys.version}
-PyTorch: {torch.__version__}
+PyTorch: {torch.__version__}"""
+
+    if torch.cuda.is_available():
+        versions += f"""
 CUDA: {torch.version.cuda}
-CUDNN: {torch.backends.cudnn.version()}"""
+CUDNN: {torch.backends.cudnn.version()}
+Device: {torch.cuda.get_device_name(0)}"""
+    else:
+        versions += f"""
+No CUDA support."""
+    return versions
 
 
 def printTorchDeviceVersion():
