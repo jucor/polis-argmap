@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "argmap"
+version = "0.1.0"
+description = "Argument mapping tools for Polis data analysis"
+requires-python = ">=3.11"
+dependencies = [
+    "python-dotenv",
+    "polars",
+    "sentence-transformers",
+    "guidance",
+    "tqdm",
+]
+
+[tool.setuptools]
+packages = ["argmap"] 
