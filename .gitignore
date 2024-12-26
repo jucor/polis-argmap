@@ -4,3 +4,7 @@
 
 *.pyc
 __pycache__
+
+
+./openData
+!example.env
