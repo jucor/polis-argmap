@@ -107,11 +107,11 @@ def loadLanguageModel():
         print(f"Model Revision: {MODEL_REVISION}")
 
     device_map = "auto" if device == "cuda" else None
-    languageModel = models.TransformersChat(
-        MODEL_ID,
-        revision=MODEL_REVISION,
-        device_map=device_map,
+    languageModel = models.Transformers(
+        model=MODEL_ID,
         device=device,
+        **({'device_map': device_map} if device_map else {}),
+        **({'revision': MODEL_REVISION} if MODEL_REVISION else {})
     )
 
     print(f"{datetime.datetime.now()} Language model initialized.")

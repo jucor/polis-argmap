@@ -12,11 +12,11 @@ dependencies:
   # - pytorch::pytorch-cuda
   # Pytorch version >= 2.3.0 to support numpy>=2
   # see https://github.com/pytorch/pytorch/issues/107302
-  - pytorch::pytorch>=2.3.0
   - ipykernel
   - ipywidgets
   - python-dotenv
   - polars
+  - protobuf
 
   # topic modeling
   - spacy
@@ -24,11 +24,10 @@ dependencies:
   - sentence-transformers
   - hvplot
   - nbformat
-  # Commenting out datashader due to raising conflcits and apparently not being imported
-  # explicitely in the current codebase. Raising issues with python 3.12 and mamba, s
-  # - datashader
+  - datashader
   - scikit-image
   - plotly>=5.19.0 # newer version needed for certain plots in bertopic
+  - umap-learn
   # - seaborn
   # - matplotlib
 
@@ -38,7 +37,9 @@ dependencies:
 
   - pip
   - pip:
-    - -e . # In stall local argmap package in editable mode
+    - torch
+    - torchvision
+    - joblib
     - bertopic
     - guidance
     - optimum # Later version than the one in the conda-forge channel
@@ -51,6 +52,8 @@ dependencies:
     # Once version 4.28.x we can install from conda-forge or any repo, but not before then.
     # See https://huggingface.co/answerdotai/ModernBERT-base/discussions/3#6764f047eef1e726f2100ca3
     - git+https://github.com/huggingface/transformers
+    - -e . # In stall local argmap package in editable mode
+
   # postgres support
   # - connectorx
   # - sqlalchemy
