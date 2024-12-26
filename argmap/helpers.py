@@ -19,7 +19,7 @@ CUDNN: {torch.backends.cudnn.version()}
 Device: {torch.cuda.get_device_name(0)}"""
     else:
         versions += f"""
-No CUDA support."""
+No CUDA support. Using CPU."""
     return versions
 
 
@@ -27,14 +27,16 @@ def printTorchDeviceVersion():
     print(getTorchDeviceVersion())
 
 
-def requireGPU():
+def getDevice():
     import torch
-    if not torch.cuda.is_available():
-        raise Exception("No CUDA device found")
+    return "cuda" if torch.cuda.is_available() else "cpu"
 
 
 def getCUDAMemory():
     import torch
+    if not torch.cuda.is_available():
+        return 0, 0, 0
+        
     free_memory = sum([torch.cuda.mem_get_info(i)[0]
                       for i in range(torch.cuda.device_count())])
     total_memory = sum([torch.cuda.mem_get_info(i)[1]
@@ -47,6 +49,10 @@ def getCUDAMemory():
 
 def printCUDAMemory():
     free_memory, allocated_memory, total_memory = getCUDAMemory()
+    if total_memory == 0:
+        print("Running on CPU - no CUDA memory to report", flush=True, file=sys.stderr)
+        return
+        
     free_memory = round(free_memory/1024**3, 1)
     allocated_memory = round(allocated_memory/1024**3, 1)
     total_memory = round(total_memory/1024**3, 1)
@@ -56,6 +62,10 @@ def printCUDAMemory():
 
 def ensureCUDAMemory(required_memory_gb):
     import torch
+    if not torch.cuda.is_available():
+        print("Warning: Running on CPU, CUDA memory check skipped", file=sys.stderr)
+        return True
+        
     required_memory = required_memory_gb * 1024**3
     free_memory = sum([torch.cuda.mem_get_info(i)[0]
                       for i in range(torch.cuda.device_count())])
@@ -68,7 +78,6 @@ def ensureCUDAMemory(required_memory_gb):
 
 
 def loadLanguageModel():
-
     global languageModel
 
     if languageModel is not None:
@@ -84,23 +93,25 @@ def loadLanguageModel():
         raise Exception(
             "Required: HuggingFace Model ID using MODEL_ID environment variable")
 
-    requireGPU()
+    device = getDevice()
+    if device == "cuda":
+        torch.cuda.ipc_collect()
+        torch.cuda.empty_cache()
 
-    torch.cuda.ipc_collect()
-    torch.cuda.empty_cache()
+        MODEL_MINIMUM_MEMORY_GB = os.getenv("MODEL_MINIMUM_MEMORY_GB")
+        if MODEL_MINIMUM_MEMORY_GB is not None:
+            ensureCUDAMemory(int(MODEL_MINIMUM_MEMORY_GB))
 
-    MODEL_MINIMUM_MEMORY_GB = os.getenv("MODEL_MINIMUM_MEMORY_GB")
-    if MODEL_MINIMUM_MEMORY_GB is not None:
-        ensureCUDAMemory(int(MODEL_MINIMUM_MEMORY_GB))
-
-    print(f"{datetime.datetime.now()} Initializing language model: {MODEL_ID}...")
+    print(f"{datetime.datetime.now()} Initializing language model: {MODEL_ID} on {device}...")
     if MODEL_REVISION:
         print(f"Model Revision: {MODEL_REVISION}")
 
+    device_map = "auto" if device == "cuda" else None
     languageModel = models.TransformersChat(
         MODEL_ID,
         revision=MODEL_REVISION,
-        device_map="auto",
+        device_map=device_map,
+        device=device,
     )
 
     print(f"{datetime.datetime.now()} Language model initialized.")
@@ -123,19 +134,19 @@ def loadEmbeddingModel():
         raise Exception(
             "Required: SentenceTransformer Model ID using EMBED_MODEL_ID environment variable")
 
-    requireGPU()
+    device = getDevice()
+    if device == "cuda":
+        torch.cuda.ipc_collect()
+        torch.cuda.empty_cache()
 
-    torch.cuda.ipc_collect()
-    torch.cuda.empty_cache()
+        EMBED_MODEL_MINIMUM_MEMORY_GB = os.getenv("EMBED_MODEL_MINIMUM_MEMORY_GB")
+        if EMBED_MODEL_MINIMUM_MEMORY_GB is not None:
+            ensureCUDAMemory(int(EMBED_MODEL_MINIMUM_MEMORY_GB))
 
-    EMBED_MODEL_MINIMUM_MEMORY_GB = os.getenv("EMBED_MODEL_MINIMUM_MEMORY_GB")
-    if EMBED_MODEL_MINIMUM_MEMORY_GB is not None:
-        ensureCUDAMemory(int(EMBED_MODEL_MINIMUM_MEMORY_GB))
-
-    print(f"{datetime.datetime.now()} Initializing embedding model: {EMBED_MODEL_ID}...")
+    print(f"{datetime.datetime.now()} Initializing embedding model: {EMBED_MODEL_ID} on {device}...")
 
     from sentence_transformers import SentenceTransformer
-    embedModel = SentenceTransformer(EMBED_MODEL_ID)
+    embedModel = SentenceTransformer(EMBED_MODEL_ID, device=device)
 
     print(f"{datetime.datetime.now()} Embedding model initialized.")
     printCUDAMemory()
@@ -147,5 +158,6 @@ def unloadEmbeddingModel():
     import torch
     global embedModel
     embedModel = None
-    torch.cuda.ipc_collect()
-    torch.cuda.empty_cache()
+    if torch.cuda.is_available():
+        torch.cuda.ipc_collect()
+        torch.cuda.empty_cache()

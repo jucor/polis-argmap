@@ -243,6 +243,8 @@ def import_heavy_libraries():
     # prefer GPU for spacy if available
     if torch.cuda.is_available():
         spacy.prefer_gpu()
+    else:
+        spacy.prefer_cpu()
 
 
 @guidance
